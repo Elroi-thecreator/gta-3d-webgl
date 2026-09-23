@@ -1,5 +1,5 @@
 // ==========================================
-// GTA 3D - PLAYER CHARACTER & ANIMATION
+// GTA 3D - REALISTIC CHARACTER CONTROLLER
 // ==========================================
 class PlayerCharacter {
   constructor(scene, cameraController, weaponManager) {
@@ -20,9 +20,9 @@ class PlayerCharacter {
     this.isDead = false;
 
     // Movement attributes
-    this.walkSpeed = 5.2;
-    this.sprintSpeed = 10.5;
-    this.jumpForce = 8.5;
+    this.walkSpeed = 5.5;
+    this.sprintSpeed = 11.2;
+    this.jumpForce = 8.8;
     this.gravity = 24.0;
     this.isGrounded = true;
     this.verticalVelocity = 0;
@@ -56,103 +56,141 @@ class PlayerCharacter {
     this.mesh = new THREE.Group();
     this.mesh.position.copy(this.position);
 
-    // --- MATERIALS ---
-    const skinMat = new THREE.MeshStandardMaterial({ color: 0xdeb887, roughness: 0.6 });
-    const jacketMat = new THREE.MeshStandardMaterial({ color: 0x2b6cb0, roughness: 0.5 }); // Blue Vice Jacket
-    const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1a202c, roughness: 0.8 }); // Dark jeans
-    const shoeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }); // White sneakers
-    const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a110a, roughness: 0.7 });
-    const shadesMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.1 });
+    // --- REALISTIC MATERIALS ---
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xdeb887, roughness: 0.65 });
+    const jacketMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.45, metalness: 0.1 }); // Rich Blue Vice Jacket
+    const shirtMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.6 }); // White undershirt
+    const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 }); // Dark indigo denim
+    const shoeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }); // White trainers
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x171717, roughness: 0.7 });
+    const shadesMat = new THREE.MeshStandardMaterial({ color: 0x09090b, metalness: 0.95, roughness: 0.1 });
+    const beltMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.5 });
+    const buckleMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95 });
 
-    // Hips / Pelvis root
+    // Hips / Pelvis Root
     this.pelvis = new THREE.Group();
     this.pelvis.position.y = 0.95;
     this.mesh.add(this.pelvis);
 
-    // Torso
-    const torsoGeo = new THREE.BoxGeometry(0.55, 0.65, 0.32);
+    // Torso Base (Jacket + Shirt)
+    const torsoGeo = new THREE.BoxGeometry(0.56, 0.68, 0.34);
     this.torso = new THREE.Mesh(torsoGeo, jacketMat);
-    this.torso.position.y = 0.35;
+    this.torso.position.y = 0.36;
     this.torso.castShadow = true;
     this.pelvis.add(this.torso);
 
-    // Head
-    const headGeo = new THREE.BoxGeometry(0.32, 0.35, 0.32);
+    // Inner White Shirt V-Neck
+    const vGeo = new THREE.BoxGeometry(0.24, 0.42, 0.05);
+    const vShirt = new THREE.Mesh(vGeo, shirtMat);
+    vShirt.position.set(0, 0.12, -0.16);
+    this.torso.add(vShirt);
+
+    // Jacket Collar
+    const colGeo = new THREE.BoxGeometry(0.48, 0.12, 0.36);
+    const collar = new THREE.Mesh(colGeo, jacketMat);
+    collar.position.y = 0.36;
+    this.torso.add(collar);
+
+    // Belt & Buckle
+    const belt = new THREE.Mesh(new THREE.BoxGeometry(0.57, 0.08, 0.35), beltMat);
+    belt.position.y = -0.32;
+    this.torso.add(belt);
+
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.09, 0.04), buckleMat);
+    buckle.position.set(0, -0.32, -0.17);
+    this.torso.add(buckle);
+
+    // Neck & Head
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.18, 8), skinMat);
+    neck.position.y = 0.42;
+    this.torso.add(neck);
+
+    const headGeo = new THREE.BoxGeometry(0.32, 0.36, 0.32);
     this.head = new THREE.Mesh(headGeo, skinMat);
-    this.head.position.y = 0.55;
+    this.head.position.y = 0.60;
     this.head.castShadow = true;
     this.torso.add(this.head);
 
-    // Hair
-    const hair = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.15, 0.34), hairMat);
-    hair.position.y = 0.16;
+    // Styled Hair
+    const hair = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.18, 0.36), hairMat);
+    hair.position.set(0, 0.16, -0.02);
     this.head.add(hair);
 
     // Aviator Sunglasses
-    const shades = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.1), shadesMat);
-    shades.position.set(0, 0.04, -0.16);
+    const shades = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.11, 0.12), shadesMat);
+    shades.position.set(0, 0.05, -0.16);
     this.head.add(shades);
 
-    // --- ARMS ---
+    // --- SHOULDERS & ARMS ---
+    const armGeo = new THREE.BoxGeometry(0.18, 0.68, 0.18);
+
     // Left Arm
     this.leftArm = new THREE.Group();
-    this.leftArm.position.set(-0.36, 0.28, 0);
-    const armGeo = new THREE.BoxGeometry(0.18, 0.65, 0.18);
-    const leftArmMesh = new THREE.Mesh(armGeo, jacketMat);
-    leftArmMesh.position.y = -0.28;
-    leftArmMesh.castShadow = true;
-    this.leftArm.add(leftArmMesh);
+    this.leftArm.position.set(-0.38, 0.28, 0);
+    const lArmMesh = new THREE.Mesh(armGeo, jacketMat);
+    lArmMesh.position.y = -0.30;
+    lArmMesh.castShadow = true;
+    this.leftArm.add(lArmMesh);
+
+    // Left Hand
+    const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.14), skinMat);
+    lHand.position.y = -0.66;
+    this.leftArm.add(lHand);
     this.torso.add(this.leftArm);
 
-    // Right Arm (Weapon holder)
+    // Right Arm (Weapon & Steering Hand)
     this.rightArm = new THREE.Group();
-    this.rightArm.position.set(0.36, 0.28, 0);
-    const rightArmMesh = new THREE.Mesh(armGeo, jacketMat);
-    rightArmMesh.position.y = -0.28;
-    rightArmMesh.castShadow = true;
-    this.rightArm.add(rightArmMesh);
+    this.rightArm.position.set(0.38, 0.28, 0);
+    const rArmMesh = new THREE.Mesh(armGeo, jacketMat);
+    rArmMesh.position.y = -0.30;
+    rArmMesh.castShadow = true;
+    this.rightArm.add(rArmMesh);
 
-    // Handheld weapon prop
+    // Right Hand
+    const rHand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.14), skinMat);
+    rHand.position.y = -0.66;
+    this.rightArm.add(rHand);
+
+    // Handheld Weapon Prop
     this.weaponProp = new THREE.Mesh(
-      new THREE.BoxGeometry(0.08, 0.18, 0.3),
-      new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8 })
+      new THREE.BoxGeometry(0.08, 0.18, 0.32),
+      new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.85 })
     );
-    this.weaponProp.position.set(0, -0.55, -0.15);
+    this.weaponProp.position.set(0, -0.62, -0.16);
     this.rightArm.add(this.weaponProp);
     this.torso.add(this.rightArm);
 
     // --- LEGS ---
-    const legGeo = new THREE.BoxGeometry(0.22, 0.72, 0.22);
+    const legGeo = new THREE.BoxGeometry(0.24, 0.74, 0.24);
 
     // Left Leg
     this.leftLeg = new THREE.Group();
     this.leftLeg.position.set(-0.16, 0, 0);
-    const leftLegMesh = new THREE.Mesh(legGeo, pantsMat);
-    leftLegMesh.position.y = -0.36;
-    leftLegMesh.castShadow = true;
-    this.leftLeg.add(leftLegMesh);
+    const lLegMesh = new THREE.Mesh(legGeo, pantsMat);
+    lLegMesh.position.y = -0.37;
+    lLegMesh.castShadow = true;
+    this.leftLeg.add(lLegMesh);
 
-    const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.32), shoeMat);
-    leftShoe.position.set(0, -0.72, -0.05);
-    leftShoe.castShadow = true;
-    this.leftLeg.add(leftShoe);
+    const lShoe = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.15, 0.34), shoeMat);
+    lShoe.position.set(0, -0.74, -0.05);
+    lShoe.castShadow = true;
+    this.leftLeg.add(lShoe);
     this.pelvis.add(this.leftLeg);
 
     // Right Leg
     this.rightLeg = new THREE.Group();
     this.rightLeg.position.set(0.16, 0, 0);
-    const rightLegMesh = new THREE.Mesh(legGeo, pantsMat);
-    rightLegMesh.position.y = -0.36;
-    rightLegMesh.castShadow = true;
-    this.rightLeg.add(rightLegMesh);
+    const rLegMesh = new THREE.Mesh(legGeo, pantsMat);
+    rLegMesh.position.y = -0.37;
+    rLegMesh.castShadow = true;
+    this.rightLeg.add(rLegMesh);
 
-    const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.32), shoeMat);
-    rightShoe.position.set(0, -0.72, -0.05);
-    rightShoe.castShadow = true;
-    this.rightLeg.add(rightShoe);
+    const rShoe = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.15, 0.34), shoeMat);
+    rShoe.position.set(0, -0.74, -0.05);
+    rShoe.castShadow = true;
+    this.rightLeg.add(rShoe);
     this.pelvis.add(this.rightLeg);
 
-    // Assign reference
     this.mesh.userData = { entity: this };
     this.scene.add(this.mesh);
   }
@@ -161,8 +199,8 @@ class PlayerCharacter {
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
 
-      // Enter/Exit Vehicle
-      if (e.code === 'KeyF' || e.code === 'KeyE') {
+      // Board / Exit Vehicle with Enter, NumpadEnter, F, or E!
+      if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'KeyF' || e.code === 'KeyE') {
         if (!this.inVehicle) {
           this.tryEnterNearestVehicle();
         } else {
@@ -170,12 +208,10 @@ class PlayerCharacter {
         }
       }
 
-      // Horn in vehicle
       if (e.code === 'KeyH' && this.inVehicle) {
         window.soundEngine?.playCarHorn();
       }
 
-      // Siren in police vehicle
       if (e.code === 'KeyE' && this.inVehicle && this.currentVehicle?.isPolice) {
         this.currentVehicle.sirenActive = !this.currentVehicle.sirenActive;
         window.soundEngine?.setPoliceSiren(this.currentVehicle.sirenActive);
@@ -186,8 +222,26 @@ class PlayerCharacter {
       this.keys[e.code] = false;
     });
 
+    // Click on car to enter
     window.addEventListener('mousedown', (e) => {
       this.mouseButtons[e.button] = true;
+
+      if (e.button === 0 && !this.inVehicle) {
+        // Raycast click for car entry
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), this.cameraCtrl.camera);
+        const vehicles = window.game?.vehicles || [];
+        const hits = raycaster.intersectObjects(vehicles.map(v => v.mesh), true);
+        if (hits.length > 0 && hits[0].distance < 6.5) {
+          let root = hits[0].object;
+          while (root && !root.userData?.entity) root = root.parent;
+          if (root && root.userData?.entity instanceof Vehicle) {
+            this.enterVehicle(root.userData.entity);
+            return;
+          }
+        }
+      }
+
       if (e.button === 2) {
         this.isAiming = true;
         this.cameraCtrl.setAiming(true);
@@ -204,14 +258,13 @@ class PlayerCharacter {
       }
     });
 
-    // Disable browser right click menu
     window.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
   update(delta, cityObstacles = [], vehicles = [], targetEntities = []) {
     if (this.isDead) return;
 
-    // --- RAGDOLL KNOCKBACK STATE ---
+    // --- RAGDOLL KNOCKBACK ---
     if (this.isRagdoll) {
       this.ragdollTime -= delta;
       this.position.addScaledVector(this.ragdollVelocity, delta);
@@ -224,7 +277,7 @@ class PlayerCharacter {
         this.ragdollVelocity.y = 0;
       }
       this.mesh.position.copy(this.position);
-      this.pelvis.rotation.z = Math.PI / 2; // Flat on back
+      this.pelvis.rotation.z = Math.PI / 2;
 
       if (this.ragdollTime <= 0) {
         this.isRagdoll = false;
@@ -233,75 +286,90 @@ class PlayerCharacter {
       return;
     }
 
-    // --- VEHICLE DRIVING MODE ---
+    // --- DRIVING VEHICLE MODE (VISIBLE SITTING POSE) ---
     if (this.inVehicle && this.currentVehicle) {
+      const v = this.currentVehicle;
+
+      // Full Arrow Key & WASD support for steering and throttle
       const vInput = {
-        forward: this.keys['KeyW'] || this.keys['ArrowUp'],
-        backward: this.keys['KeyS'] || this.keys['ArrowDown'],
-        left: this.keys['KeyA'] || this.keys['ArrowLeft'],
-        right: this.keys['KeyD'] || this.keys['ArrowRight'],
-        handbrake: this.keys['Space']
+        forward: this.keys['KeyW'] || this.keys['ArrowUp'] || false,
+        backward: this.keys['KeyS'] || this.keys['ArrowDown'] || false,
+        left: this.keys['KeyA'] || this.keys['ArrowLeft'] || false,
+        right: this.keys['KeyD'] || this.keys['ArrowRight'] || false,
+        handbrake: this.keys['Space'] || false
       };
 
-      this.currentVehicle.update(delta, vInput, [...cityObstacles, ...vehicles]);
-      this.position.copy(this.currentVehicle.position);
-      this.mesh.position.copy(this.currentVehicle.position);
+      v.update(delta, vInput, [...cityObstacles, ...vehicles]);
+      this.position.copy(v.position);
 
-      // Sound engine rpm update
-      window.soundEngine?.updateEngine(this.currentVehicle.speed, vInput.forward || vInput.backward);
+      // Character Visibly Sits in Driver Seat
+      this.mesh.visible = true;
+      const seatOffset = new THREE.Vector3(-v.dimensions.w * 0.23, v.dimensions.h * 0.38, -v.dimensions.l * 0.05);
+      seatOffset.applyEuler(new THREE.Euler(0, v.rotation, 0));
+      this.mesh.position.copy(v.position).add(seatOffset);
+      this.mesh.rotation.y = v.rotation;
 
-      // Update vehicle UI
-      if (window.ui) {
-        window.ui.updateVehicleHUD(this.currentVehicle);
-      }
+      // Animate Driving Sitting Pose
+      this.pelvis.position.y = 0.55;
+      this.leftLeg.rotation.x = -Math.PI / 2.2;
+      this.rightLeg.rotation.x = -Math.PI / 2.2;
+      this.leftArm.rotation.x = -Math.PI / 3.0;
+      this.leftArm.rotation.y = 0.35;
+      this.rightArm.rotation.x = -Math.PI / 3.0;
+      this.rightArm.rotation.y = -0.35;
+      this.weaponProp.visible = false;
+
+      window.soundEngine?.updateEngine(v.speed, vInput.forward || vInput.backward);
+      if (window.ui) window.ui.updateVehicleHUD(v);
       return;
     }
 
-    // --- ON-FOOT MOVEMENT ---
-    const moveZ = (this.keys['KeyW'] ? 1 : 0) - (this.keys['KeyS'] ? 1 : 0);
-    const moveX = (this.keys['KeyD'] ? 1 : 0) - (this.keys['KeyA'] ? 1 : 0);
+    // Restore weapon visibility on-foot
+    this.weaponProp.visible = (this.weaponMgr.current.id !== 'fists');
+
+    // --- ON-FOOT MOVEMENT (WASD & ARROW KEYS SUPPORT) ---
+    const up = this.keys['KeyW'] || this.keys['ArrowUp'];
+    const down = this.keys['KeyS'] || this.keys['ArrowDown'];
+    const left = this.keys['KeyA'] || this.keys['ArrowLeft'];
+    const right = this.keys['KeyD'] || this.keys['ArrowRight'];
+
+    const moveZ = (up ? 1 : 0) - (down ? 1 : 0);
+    const moveX = (right ? 1 : 0) - (left ? 1 : 0);
     this.isSprinting = !!(this.keys['ShiftLeft'] || this.keys['ShiftRight']) && moveZ > 0;
 
     const inputLength = Math.hypot(moveX, moveZ);
     this.isMoving = inputLength > 0.1;
 
-    // Movement direction relative to camera angle
     let moveDir = new THREE.Vector3();
     if (this.isMoving) {
       const forward = this.cameraCtrl.getForwardVector();
-      const right = this.cameraCtrl.getRightVector();
+      const rightVec = this.cameraCtrl.getRightVector();
       moveDir.addScaledVector(forward, moveZ);
-      moveDir.addScaledVector(right, moveX);
+      moveDir.addScaledVector(rightVec, moveX);
       moveDir.normalize();
 
-      // Face movement direction, or face camera direction if aiming
       if (this.isAiming) {
         this.rotation = this.cameraCtrl.yaw;
       } else {
         const targetAngle = Math.atan2(-moveDir.x, -moveDir.z);
-        // Smooth rotation
         let diff = targetAngle - this.rotation;
         while (diff > Math.PI) diff -= Math.PI * 2;
         while (diff < -Math.PI) diff += Math.PI * 2;
-        this.rotation += diff * Math.min(1.0, delta * 12.0);
+        this.rotation += diff * Math.min(1.0, delta * 14.0);
       }
     } else if (this.isAiming) {
       this.rotation = this.cameraCtrl.yaw;
     }
 
-    // Movement speed
     const currentSpeed = this.isSprinting ? this.sprintSpeed : this.walkSpeed;
     const moveDelta = moveDir.clone().multiplyScalar(currentSpeed * delta);
-
-    // Tentative next position
     const nextPos = this.position.clone().add(moveDelta);
 
-    // Check collisions with city buildings and vehicles
     if (!this.checkPlayerCollision(nextPos, cityObstacles, vehicles)) {
       this.position.copy(nextPos);
     }
 
-    // --- JUMP & GRAVITY ---
+    // Jump & Gravity
     if (this.keys['Space'] && this.isGrounded) {
       this.verticalVelocity = this.jumpForce;
       this.isGrounded = false;
@@ -318,14 +386,12 @@ class PlayerCharacter {
       }
     }
 
-    // Update Mesh transform
     this.mesh.position.copy(this.position);
     this.mesh.rotation.y = this.rotation;
 
-    // --- PROCEDURAL ANIMATIONS ---
     this.updateAnimations(delta);
 
-    // --- WEAPONS FIRING & ATTACK ---
+    // Weapons Firing
     if (this.mouseButtons[0]) {
       this.weaponMgr.tryFire(this, targetEntities);
       if (this.weaponMgr.current.id === 'fists') {
@@ -339,31 +405,24 @@ class PlayerCharacter {
       if (this.punchTimer <= 0) this.isPunching = false;
     }
 
-    // Check interaction prompt for nearest car
     this.checkVehiclePrompt(vehicles);
   }
 
   updateAnimations(delta) {
     if (this.isMoving) {
-      const animSpeed = this.isSprinting ? 14 : 9;
+      const animSpeed = this.isSprinting ? 15 : 9.5;
       this.animTime += delta * animSpeed;
-
       const swing = Math.sin(this.animTime);
 
-      // Legs swing opposite each other
-      this.leftLeg.rotation.x = swing * 0.7;
-      this.rightLeg.rotation.x = -swing * 0.7;
+      this.leftLeg.rotation.x = swing * 0.72;
+      this.rightLeg.rotation.x = -swing * 0.72;
 
-      // Arms swing opposite legs unless aiming
       if (!this.isAiming && !this.isPunching) {
-        this.leftArm.rotation.x = -swing * 0.6;
-        this.rightArm.rotation.x = swing * 0.6;
+        this.leftArm.rotation.x = -swing * 0.65;
+        this.rightArm.rotation.x = swing * 0.65;
       }
-
-      // Torso slight vertical bob
       this.pelvis.position.y = 0.95 + Math.abs(Math.sin(this.animTime * 2)) * 0.08;
     } else {
-      // Idle breathing
       this.animTime += delta * 2.5;
       this.leftLeg.rotation.x = 0;
       this.rightLeg.rotation.x = 0;
@@ -375,14 +434,12 @@ class PlayerCharacter {
       }
     }
 
-    // Aiming pose
     if (this.isAiming) {
       this.rightArm.rotation.x = -Math.PI / 2 + this.cameraCtrl.pitch * 0.6;
       this.rightArm.rotation.y = -0.2;
       this.leftArm.rotation.x = -Math.PI / 2.5;
       this.leftArm.rotation.y = 0.4;
     } else if (this.isPunching) {
-      // Punch jab
       this.rightArm.rotation.x = -Math.PI / 2;
       this.rightArm.rotation.z = -0.3;
     } else {
@@ -393,9 +450,7 @@ class PlayerCharacter {
   }
 
   checkPlayerCollision(nextPos, obstacles, vehicles) {
-    const radius = 0.45;
-
-    // Check buildings / walls
+    const radius = 0.48;
     for (const obs of obstacles) {
       if (!obs) continue;
       const oPos = obs.position;
@@ -408,11 +463,10 @@ class PlayerCharacter {
       }
     }
 
-    // Check vehicles (cannot walk through vehicles)
     for (const v of vehicles) {
       if (!v || v === this.currentVehicle) continue;
       const vPos = v.position;
-      const vDim = v.dimensions || { l: 4, w: 2 };
+      const vDim = v.dimensions || { l: 4.4, w: 2.1 };
       if (
         Math.abs(nextPos.x - vPos.x) < radius + vDim.w * 0.5 &&
         Math.abs(nextPos.z - vPos.z) < radius + vDim.l * 0.5
@@ -425,12 +479,12 @@ class PlayerCharacter {
 
   checkVehiclePrompt(vehicles) {
     if (this.inVehicle) {
-      if (window.ui) window.ui.showPromptTip('[F] Exit Vehicle');
+      if (window.ui) window.ui.showPromptTip('[ENTER / F] Exit Vehicle');
       return;
     }
 
     let nearestCar = null;
-    let minDist = 3.5;
+    let minDist = 6.5;
 
     for (const v of vehicles) {
       if (!v || v.isDestroyed) continue;
@@ -439,10 +493,12 @@ class PlayerCharacter {
         minDist = d;
         nearestCar = v;
       }
+      v.setPromptVisible(false);
     }
 
     if (nearestCar) {
-      const msg = nearestCar.driver ? '[F] Carjack Vehicle' : '[F] Enter Vehicle';
+      nearestCar.setPromptVisible(true);
+      const msg = nearestCar.driver ? '[ENTER / F] Carjack Vehicle' : '[ENTER / F] Drive Vehicle';
       if (window.ui) window.ui.showPromptTip(msg);
     } else {
       if (window.ui) window.ui.hidePromptTip();
@@ -452,7 +508,7 @@ class PlayerCharacter {
   tryEnterNearestVehicle() {
     const vehicles = window.game?.vehicles || [];
     let nearest = null;
-    let minDist = 3.8;
+    let minDist = 6.5;
 
     for (const v of vehicles) {
       if (!v || v.isDestroyed) continue;
@@ -469,12 +525,10 @@ class PlayerCharacter {
   }
 
   enterVehicle(vehicle) {
-    // If vehicle has civilian driver, pull them out!
     if (vehicle.driver && vehicle.driver !== this) {
       if (vehicle.driver.onCarjacked) {
         vehicle.driver.onCarjacked();
       }
-      // Report car theft crime to police
       if (window.policeManager) {
         window.policeManager.reportCarTheft(this.position);
       }
@@ -483,15 +537,11 @@ class PlayerCharacter {
     this.inVehicle = true;
     this.currentVehicle = vehicle;
     vehicle.driver = this;
+    vehicle.setPromptVisible(false);
 
-    // Hide on-foot model while inside car
-    this.mesh.visible = false;
-
-    // Start engine sound
     window.soundEngine?.startEngine();
     window.soundEngine?.startRadio();
 
-    // Notify UI
     if (window.ui) {
       window.ui.setVehicleMode(true, vehicle);
     }
@@ -503,26 +553,28 @@ class PlayerCharacter {
     const v = this.currentVehicle;
     v.driver = null;
 
-    // Exit at driver door
     this.position.copy(v.getDriverDoorPosition());
     this.position.y = 0;
     this.mesh.position.copy(this.position);
-    this.mesh.visible = true;
+    this.pelvis.position.y = 0.95;
+    this.leftLeg.rotation.x = 0;
+    this.rightLeg.rotation.x = 0;
+    this.leftArm.rotation.x = 0;
+    this.leftArm.rotation.y = 0;
+    this.rightArm.rotation.x = 0;
+    this.rightArm.rotation.y = 0;
 
-    // If exited while car moving fast, roll / take minor tumble
-    if (Math.abs(v.speed) > 15) {
+    if (Math.abs(v.speed) > 14) {
       this.triggerKnockback(new THREE.Vector3(-Math.sin(v.rotation)*12, 4, -Math.cos(v.rotation)*12), 15);
     }
 
     this.inVehicle = false;
     this.currentVehicle = null;
 
-    // Stop engine sound
     window.soundEngine?.stopEngine();
     window.soundEngine?.setTireScreech(false);
     window.soundEngine?.stopRadio();
 
-    // Notify UI
     if (window.ui) {
       window.ui.setVehicleMode(false);
     }
@@ -533,7 +585,6 @@ class PlayerCharacter {
 
     window.soundEngine?.playPunch();
 
-    // Armor absorbs 70% of damage
     if (this.armor > 0) {
       const absorbed = damage * 0.7;
       const direct = damage * 0.3;
@@ -588,11 +639,9 @@ class PlayerCharacter {
     this.currentVehicle = null;
     this.mesh.visible = true;
 
-    // Reset position to hospital safehouse
-    this.position.set(0, 0, 0);
+    this.position.set(0, 0, 12);
     this.mesh.position.copy(this.position);
 
-    // Clear wanted level
     if (window.policeManager) {
       window.policeManager.clearWantedLevel();
     }

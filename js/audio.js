@@ -288,8 +288,17 @@ class SoundEngine {
   updateEngine(speed, throttle) {
     if (!this.engineOsc || !this.ctx) return;
     const absSpeed = Math.abs(speed);
-    const targetFreq = 40 + (absSpeed * 2.2) + (throttle ? 18 : 0);
-    const filterFreq = 180 + (absSpeed * 8) + (throttle ? 150 : 0);
+
+    // 5-Speed Gear Transmission Simulation
+    let gearSpeed = absSpeed;
+    if (absSpeed > 35) { gearSpeed = (absSpeed - 35) * 1.2; }
+    else if (absSpeed > 24) { gearSpeed = (absSpeed - 24) * 1.5; }
+    else if (absSpeed > 15) { gearSpeed = (absSpeed - 15) * 1.8; }
+    else if (absSpeed > 6)  { gearSpeed = (absSpeed - 6) * 2.2; }
+    else { gearSpeed = absSpeed * 2.8; }
+
+    const targetFreq = 42 + Math.min(120, gearSpeed * 3.8) + (throttle ? 24 : 0);
+    const filterFreq = 200 + Math.min(600, gearSpeed * 22) + (throttle ? 280 : 0);
 
     this.engineOsc.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.05);
     this.engineFilter.frequency.setTargetAtTime(filterFreq, this.ctx.currentTime, 0.05);
