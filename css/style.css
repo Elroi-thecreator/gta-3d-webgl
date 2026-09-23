@@ -11,7 +11,7 @@ body, html {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #050508;
+  background-color: #030712;
   font-family: 'Montserrat', sans-serif;
   color: #fff;
 }
@@ -25,7 +25,6 @@ body, html {
   z-index: 1;
 }
 
-/* UI OVERLAY ROOT */
 #hud {
   position: absolute;
   top: 0;
@@ -37,12 +36,11 @@ body, html {
   overflow: hidden;
 }
 
-/* INTERACTIVE OVERLAYS */
 .interactive {
   pointer-events: auto !important;
 }
 
-/* TOP RIGHT HUD: HEALTH, ARMOR, WANTED, WEAPON, CASH */
+/* TOP RIGHT HUD: CASH, WANTED, WEAPON, TIME */
 #top-right-hud {
   position: absolute;
   top: 24px;
@@ -50,34 +48,34 @@ body, html {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+  gap: 10px;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));
 }
 
 #clock-display {
   font-family: 'Orbitron', monospace;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: #a0aec0;
+  color: #94a3b8;
   letter-spacing: 2px;
 }
 
 #cash-display {
   font-family: 'Orbitron', monospace;
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 900;
-  color: #48bb78;
+  color: #22c55e;
   letter-spacing: 2px;
-  text-shadow: 0 0 16px rgba(72, 187, 120, 0.6);
+  text-shadow: 0 0 16px rgba(34, 197, 94, 0.7);
 }
 
 .cash-anim {
-  animation: cashPop 0.5s ease;
+  animation: cashPop 0.4s ease;
 }
 
 @keyframes cashPop {
   0% { transform: scale(1); }
-  50% { transform: scale(1.25); color: #38a169; }
+  50% { transform: scale(1.2); color: #4ade80; }
   100% { transform: scale(1); }
 }
 
@@ -88,73 +86,23 @@ body, html {
 
 .star {
   font-size: 26px;
-  color: #2d3748;
-  transition: all 0.25s ease;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  color: #1e293b;
+  transition: all 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.9));
 }
 
 .star.active {
-  color: #ecc94b;
-  text-shadow: 0 0 12px rgba(236, 201, 75, 0.9);
+  color: #facc15;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.9);
 }
 
 .star.flashing {
-  animation: starBlink 0.6s infinite alternate;
+  animation: starBlink 0.5s infinite alternate;
 }
 
 @keyframes starBlink {
-  0% { color: #ecc94b; text-shadow: 0 0 14px #e53e3e; }
-  100% { color: #e53e3e; text-shadow: 0 0 18px #ecc94b; }
-}
-
-/* BARS: HEALTH & ARMOR */
-.vital-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 220px;
-}
-
-.vital-bar-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  padding: 4px 8px;
-  backdrop-filter: blur(8px);
-}
-
-.vital-icon {
-  font-size: 14px;
-  width: 18px;
-  text-align: center;
-}
-
-.bar-track {
-  flex: 1;
-  height: 10px;
-  background: rgba(0,0,0,0.6);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-
-#health-bar-fill {
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, #e53e3e, #f56565);
-  box-shadow: 0 0 8px rgba(245, 101, 101, 0.8);
-  transition: width 0.2s ease;
-}
-
-#armor-bar-fill {
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, #3182ce, #63b3ed);
-  box-shadow: 0 0 8px rgba(99, 179, 237, 0.8);
-  transition: width 0.2s ease;
+  0% { color: #facc15; text-shadow: 0 0 14px #ef4444; }
+  100% { color: #ef4444; text-shadow: 0 0 18px #facc15; }
 }
 
 /* WEAPON BOX */
@@ -162,10 +110,10 @@ body, html {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
-  padding: 8px 16px;
+  padding: 6px 16px;
   backdrop-filter: blur(10px);
 }
 
@@ -180,53 +128,62 @@ body, html {
 
 #weapon-name {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: #cbd5e0;
+  color: #e2e8f0;
 }
 
 #ammo-display {
   font-family: 'Orbitron', monospace;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 900;
   color: #fff;
 }
 
-/* BOTTOM LEFT: RADAR MINIMAP & DISTRICT */
+/* GTA 5 RECTANGULAR GPS RADAR & INTEGRATED VITALS */
 #minimap-wrapper {
   position: absolute;
   bottom: 24px;
   left: 28px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 #district-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #f7fafc;
-  background: rgba(10, 10, 20, 0.7);
-  padding: 4px 10px;
-  border-left: 4px solid #ed64a6;
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.85);
+  padding: 3px 8px;
+  border-left: 3px solid #38bdf8;
   border-radius: 2px;
-  display: inline-block;
-  backdrop-filter: blur(6px);
   width: fit-content;
+  backdrop-filter: blur(6px);
 }
 
 #radar-frame {
   position: relative;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.8);
+  width: 220px;
+  height: 140px;
+  border-radius: 4px;
+  border: 3px solid rgba(30, 41, 59, 0.95);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.85);
   overflow: hidden;
   background: #0f172a;
+  transition: border-color 0.2s ease;
+}
+
+#radar-frame.wanted-flashing {
+  animation: radarFlashing 0.6s infinite alternate;
+}
+
+@keyframes radarFlashing {
+  0% { border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.9); }
+  100% { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.9); }
 }
 
 #radar-canvas {
@@ -238,30 +195,55 @@ body, html {
 #radar-north {
   position: absolute;
   top: 6px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 8px;
   font-weight: 900;
-  font-size: 12px;
-  color: #e53e3e;
-  text-shadow: 0 0 4px #000;
-  pointer-events: none;
+  font-size: 11px;
+  color: #ef4444;
+  text-shadow: 0 0 3px #000;
 }
 
-#radar-cross {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: #3182ce;
-  border: 2px solid #fff;
-  box-shadow: 0 0 6px rgba(49, 130, 206, 0.9);
-  pointer-events: none;
+/* GTA 5 INTEGRATED VITALS BARS (Directly underneath the radar) */
+#gta5-vitals {
+  display: flex;
+  gap: 4px;
+  width: 220px;
+  height: 8px;
 }
 
-/* BOTTOM RIGHT: SPEEDOMETER & VEHICLE STATS */
+.gta5-bar-wrap {
+  flex: 1;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#health-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  transition: width 0.15s ease;
+}
+
+#armor-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: #3b82f6;
+  box-shadow: 0 0 8px #3b82f6;
+  transition: width 0.15s ease;
+}
+
+#stamina-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: #eab308;
+  box-shadow: 0 0 8px #eab308;
+  transition: width 0.15s ease;
+}
+
+/* BOTTOM RIGHT: SPEEDOMETER & NITRO GAUGE */
 #vehicle-hud {
   position: absolute;
   bottom: 24px;
@@ -269,13 +251,13 @@ body, html {
   display: none;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 6px;
   background: rgba(15, 23, 42, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  padding: 14px 20px;
+  padding: 12px 18px;
   backdrop-filter: blur(12px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
 
 #vehicle-name {
@@ -283,7 +265,7 @@ body, html {
   font-weight: 900;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: #f6ad55;
+  color: #f59e0b;
 }
 
 .speedo-row {
@@ -294,7 +276,7 @@ body, html {
 
 #speed-value {
   font-family: 'Orbitron', monospace;
-  font-size: 42px;
+  font-size: 44px;
   font-weight: 900;
   color: #fff;
 }
@@ -302,100 +284,296 @@ body, html {
 #speed-unit {
   font-size: 14px;
   font-weight: 700;
-  color: #a0aec0;
+  color: #94a3b8;
 }
 
-.vehicle-health-track {
-  width: 140px;
+.gauge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #94a3b8;
+}
+
+.gauge-track {
+  width: 130px;
   height: 6px;
   background: rgba(0,0,0,0.6);
   border-radius: 3px;
   overflow: hidden;
-  margin-top: 4px;
 }
 
 #vehicle-health-fill {
   height: 100%;
   width: 100%;
-  background: linear-gradient(90deg, #38a169, #48bb78);
+  background: linear-gradient(90deg, #10b981, #34d399);
   transition: width 0.15s ease;
 }
 
-/* RADIO NOTIFICATION PILL */
-#radio-hud {
-  position: absolute;
-  top: 24px;
-  left: 28px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  padding: 8px 18px;
-  backdrop-filter: blur(10px);
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.4s ease;
+#nitro-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #06b6d4, #38bdf8);
+  box-shadow: 0 0 8px #38bdf8;
+  transition: width 0.1s linear;
 }
 
-#radio-hud.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-#radio-station-title {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #f687b3;
-}
-
-/* CROSSHAIR */
+/* GTA 5 DYNAMIC RETICLE & HITMARKER */
 #crosshair {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0.8;
-  transition: transform 0.1s ease, opacity 0.2s;
 }
 
 .cross-dot {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   background: #fff;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 4px #000;
-}
-
-.cross-tick {
-  position: absolute;
-  background: #fff;
   box-shadow: 0 0 3px #000;
 }
 
-.cross-tick.top { top: 0; left: 13px; width: 2px; height: 7px; }
-.cross-tick.bottom { bottom: 0; left: 13px; width: 2px; height: 7px; }
-.cross-tick.left { left: 0; top: 13px; height: 2px; width: 7px; }
-.cross-tick.right { right: 0; top: 13px; height: 2px; width: 7px; }
+.reticle-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
 
-#crosshair.aiming {
-  transform: translate(-50%, -50%) scale(0.85);
+#crosshair.aiming .reticle-ring {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+/* RED 'X' HITMARKER */
+#hitmarker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.08s ease;
+}
+
+#hitmarker::before, #hitmarker::after {
+  content: '';
+  position: absolute;
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+#hitmarker::before {
+  top: 8px;
+  left: 0;
+  width: 18px;
+  height: 2.5px;
+}
+
+#hitmarker::after {
+  top: 0;
+  left: 8px;
+  width: 2.5px;
+  height: 18px;
+}
+
+#hitmarker.active {
   opacity: 1;
 }
 
-#crosshair.enemy-hover .cross-dot,
-#crosshair.enemy-hover .cross-tick {
-  background: #e53e3e;
+/* GTA 5 RADIAL WEAPON WHEEL (TAB) */
+#weapon-wheel-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 7, 18, 0.65);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+  z-index: 80;
+  pointer-events: auto;
+}
+
+#weapon-wheel-overlay.visible {
+  display: flex;
+}
+
+#wheel-container {
+  position: relative;
+  width: 380px;
+  height: 380px;
+}
+
+.wheel-slot {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  transform: translate(-50%, -50%);
+}
+
+.wheel-slot:hover, .wheel-slot.selected {
+  background: rgba(59, 130, 246, 0.85);
+  border-color: #60a5fa;
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.9);
+}
+
+.wheel-slot .w-icon {
+  font-size: 32px;
+}
+
+.wheel-slot .w-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+#wheel-center-info {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+#wheel-center-name {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #60a5fa;
+}
+
+/* INTERACTIVE iFRUIT SMARTPHONE (P or UP ARROW) */
+#ifruit-phone {
+  position: absolute;
+  bottom: 24px;
+  right: 32px;
+  width: 250px;
+  height: 440px;
+  background: #09090b;
+  border: 4px solid #27272a;
+  border-radius: 36px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 0 2px rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 90;
+  transform: translateY(115%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+#ifruit-phone.visible {
+  transform: translateY(0);
+}
+
+.phone-top-notch {
+  width: 90px;
+  height: 18px;
+  background: #000;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  align-self: center;
+  margin-bottom: 6px;
+}
+
+.phone-screen {
+  flex: 1;
+  background: linear-gradient(135deg, #1e1b4b, #0f172a);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 14px;
+}
+
+.phone-app-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 8px;
+}
+
+.app-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.app-btn:hover {
+  transform: scale(1.1);
+}
+
+.app-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+.app-btn span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #cbd5e0;
+  text-align: center;
+}
+
+.phone-home-bar {
+  width: 80px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  align-self: center;
+  margin: 10px 0;
+  cursor: pointer;
 }
 
 /* INTERACTION PROMPT */
@@ -404,7 +582,7 @@ body, html {
   bottom: 120px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 6px;
   padding: 8px 18px;
@@ -422,7 +600,7 @@ body, html {
 }
 
 .key-badge {
-  background: #3182ce;
+  background: #3b82f6;
   color: #fff;
   padding: 2px 7px;
   border-radius: 4px;
@@ -440,14 +618,14 @@ body, html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(10, 15, 30, 0.9);
-  border-top: 3px solid #ecc94b;
-  border-bottom: 3px solid #ecc94b;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 3px solid #facc15;
+  border-bottom: 3px solid #facc15;
   padding: 12px 36px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.8);
   opacity: 0;
   pointer-events: none;
-  transition: all 0.4s ease;
+  transition: all 0.35s ease;
   z-index: 50;
 }
 
@@ -460,7 +638,7 @@ body, html {
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #ecc94b;
+  color: #facc15;
 }
 
 #mission-desc {
@@ -470,7 +648,7 @@ body, html {
   margin-top: 4px;
 }
 
-/* WASTED / BUSTED SCREEN */
+/* WASTED SCREEN */
 #death-screen {
   position: absolute;
   top: 0;
@@ -494,14 +672,12 @@ body, html {
 }
 
 #death-text {
-  font-family: 'Montserrat', sans-serif;
   font-size: 80px;
   font-weight: 900;
   letter-spacing: 12px;
   text-transform: uppercase;
-  color: #e53e3e;
-  text-shadow: 0 0 30px rgba(229, 62, 62, 0.9), 0 5px 15px #000;
-  animation: pulseWasted 1.5s infinite alternate;
+  color: #ef4444;
+  text-shadow: 0 0 30px rgba(239, 68, 68, 0.9), 0 5px 15px #000;
 }
 
 #death-subtitle {
@@ -512,108 +688,14 @@ body, html {
   letter-spacing: 2px;
 }
 
-@keyframes pulseWasted {
-  0% { transform: scale(1); filter: brightness(1); }
-  100% { transform: scale(1.05); filter: brightness(1.3); }
-}
-
-/* PAUSE & CONTROLS MODAL */
-#controls-modal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  padding: 28px 36px;
-  width: 620px;
-  max-width: 90vw;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.85);
-  display: none;
-  flex-direction: column;
-  gap: 18px;
-  z-index: 200;
-  backdrop-filter: blur(16px);
-}
-
-#controls-modal.visible {
-  display: flex;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  padding-bottom: 12px;
-}
-
-.modal-header h2 {
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: #f6ad55;
-}
-
-.controls-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 24px;
-  margin-top: 6px;
-}
-
-.control-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  color: #cbd5e0;
-}
-
-.control-item .k {
-  background: #2b6cb0;
-  color: #fff;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-weight: 700;
-  font-size: 12px;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 10px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #dd6b20, #ed8936);
-  border: none;
-  color: #fff;
-  font-weight: 800;
-  font-size: 15px;
-  padding: 10px 28px;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(237, 137, 54, 0.5);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(237, 137, 54, 0.7);
-}
-
-/* CLICK TO PLAY START OVERLAY */
+/* START SCREEN */
 #start-screen {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(5, 5, 12, 0.85);
+  background: rgba(3, 7, 18, 0.85);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -624,33 +706,33 @@ body, html {
 }
 
 #start-title {
-  font-size: 54px;
+  font-size: 60px;
   font-weight: 900;
   letter-spacing: 6px;
   text-transform: uppercase;
   color: #fff;
-  text-shadow: 0 0 25px #ed64a6, 0 0 50px #9f7aea;
+  text-shadow: 0 0 30px #3b82f6, 0 0 60px #1d4ed8;
 }
 
 #start-sub {
   font-size: 16px;
-  font-weight: 600;
-  color: #a0aec0;
+  font-weight: 700;
+  color: #94a3b8;
   letter-spacing: 3px;
   margin-top: 12px;
-  margin-bottom: 30px;
+  margin-bottom: 28px;
   text-transform: uppercase;
 }
 
 .pulse-prompt {
   font-size: 18px;
   font-weight: 800;
-  color: #f6ad55;
+  color: #facc15;
   letter-spacing: 1px;
-  animation: promptBlink 1s infinite alternate;
+  animation: promptBlink 0.9s infinite alternate;
 }
 
 @keyframes promptBlink {
-  0% { opacity: 0.4; }
-  100% { opacity: 1; text-shadow: 0 0 10px #f6ad55; }
+  0% { opacity: 0.3; }
+  100% { opacity: 1; text-shadow: 0 0 12px #facc15; }
 }

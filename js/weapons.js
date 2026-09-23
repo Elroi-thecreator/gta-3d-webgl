@@ -230,8 +230,12 @@ class WeaponManager {
         const entity = current.userData.entity;
         entity.onHit(this.current.damage, rayDir.clone().multiplyScalar(4));
         this.createHitSparks(hitPoint, 0xff2222);
+        
+        // GTA 5 Hitmarker Feedback!
+        window.ui?.triggerHitmarker();
+        window.soundEngine?.playHitmarker();
       } else {
-        this.createHitSparks(hitPoint, 0xf6ad55); // Concrete spark
+        this.createHitSparks(hitPoint, 0xf6ad55);
       }
     } else {
       hitPoint = origin.clone().add(rayDir.clone().multiplyScalar(this.current.range));

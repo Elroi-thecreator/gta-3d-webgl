@@ -1,32 +1,42 @@
 // ==========================================
-// GTA 3D - REALISTIC VEHICLE PHYSICS & DYNAMICS
+// GTA 5 - PEGASSI ZENTORNO SUPERCAR PHYSICS
 // ==========================================
 class Vehicle {
   constructor(scene, options = {}) {
     this.scene = scene;
     this.type = options.type || 'sports';
-    this.color = options.color || 0xef4444; // Vibrant crimson red
+    this.color = options.color || 0xef4444; // Zentorno Crimson Red
 
     this.position = new THREE.Vector3();
     if (options.position) this.position.copy(options.position);
     this.rotation = options.rotation || 0;
 
-    // Dynamics state
+    // Dynamics
     this.speed = 0;
     this.steerAngle = 0;
     this.maxSteerAngle = 0.58;
-    this.acceleration = options.acceleration || 32;
-    this.maxSpeed = options.maxSpeed || 46;
-    this.reverseMaxSpeed = 16;
-    this.brakeForce = 52;
-    this.friction = 0.988;
-    this.turnSpeed = 2.1;
+    this.acceleration = options.acceleration || 36;
+    this.maxSpeed = options.maxSpeed || 50;
+    this.reverseMaxSpeed = 18;
+    this.brakeForce = 55;
+    this.friction = 0.99;
+    this.turnSpeed = 2.2;
 
     // Drifting & physics state
     this.isHandbraking = false;
     this.driftFactor = 0;
     this.chassisRoll = 0;
     this.chassisPitch = 0;
+
+    // Nitro Boost System (GTA 5)
+    this.nitro = 100;
+    this.maxNitro = 100;
+    this.isNitroActive = false;
+    this.isBurnout = false;
+
+    // Exhaust Flames
+    this.flameTimer = 0;
+    this.wasAccelerating = false;
 
     // Damage & health
     this.health = 100;
@@ -35,15 +45,14 @@ class Vehicle {
     this.smokeParticles = [];
     this.skidMarks = [];
 
-    // Police specific
+    // Police
     this.isPolice = (this.type === 'police');
     this.sirenActive = false;
     this.sirenTimer = 0;
 
-    // Occupant
+    // Driver
     this.driver = null;
 
-    // Build 3D vehicle
     this.createModel();
     this.createPromptBadge();
   }
@@ -56,164 +65,155 @@ class Vehicle {
     this.chassisGroup = new THREE.Group();
     this.mesh.add(this.chassisGroup);
 
-    let l = 4.4, w = 2.0, h = 1.05;
-    if (this.type === 'sports') { l = 4.6; w = 2.1; h = 0.98; }
-    else if (this.type === 'truck') { l = 5.4; w = 2.3; h = 1.55; }
+    let l = 4.6, w = 2.1, h = 0.98;
+    if (this.type === 'truck') { l = 5.4; w = 2.3; h = 1.55; }
     else if (this.type === 'police') { l = 4.5; w = 2.05; h = 1.15; }
 
     this.dimensions = { l, w, h };
 
-    // Metallic Car Paint Shader
+    // Metallic Zentorno Lacquer
     const bodyMat = new THREE.MeshStandardMaterial({
       color: this.isPolice ? 0x111827 : this.color,
-      metalness: 0.88,
-      roughness: 0.18
+      metalness: 0.9,
+      roughness: 0.16
     });
 
-    // Lower Chassis
-    const lowerGeo = new THREE.BoxGeometry(w, h * 0.48, l);
-    const lowerBody = new THREE.Mesh(lowerGeo, bodyMat);
+    const carbonMat = new THREE.MeshStandardMaterial({
+      color: 0x09090b,
+      metalness: 0.8,
+      roughness: 0.4
+    });
+
+    // Lower Wedge Body
+    const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(w, h * 0.46, l), bodyMat);
     lowerBody.position.y = h * 0.42;
     lowerBody.castShadow = true;
     lowerBody.receiveShadow = true;
     this.chassisGroup.add(lowerBody);
 
-    // Front Bumper & Air Dam
-    const bumperGeo = new THREE.BoxGeometry(w * 0.98, h * 0.32, 0.45);
-    const bumperMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9 });
-    const fDam = new THREE.Mesh(bumperGeo, bumperMat);
-    fDam.position.set(0, h * 0.25, -l * 0.51);
+    // Front Carbon Splitter
+    const fSplitter = new THREE.Mesh(new THREE.BoxGeometry(w * 1.02, 0.08, 0.6), carbonMat);
+    fSplitter.position.set(0, h * 0.15, -l * 0.52);
+    this.chassisGroup.add(fSplitter);
+
+    // Front Air Intakes
+    const fDam = new THREE.Mesh(new THREE.BoxGeometry(w * 0.6, h * 0.25, 0.2), carbonMat);
+    fDam.position.set(0, h * 0.32, -l * 0.51);
     this.chassisGroup.add(fDam);
 
-    // Grille with chrome edge
-    const grillGeo = new THREE.BoxGeometry(w * 0.55, h * 0.22, 0.1);
-    const grillMat = new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.9 });
-    const grill = new THREE.Mesh(grillGeo, grillMat);
-    grill.position.set(0, h * 0.38, -l * 0.52);
-    this.chassisGroup.add(grill);
+    // Aerodynamic Side Intake Pods (Zentorno style)
+    [-w * 0.52, w * 0.52].forEach(sx => {
+      const pod = new THREE.Mesh(new THREE.BoxGeometry(0.18, h * 0.4, l * 0.35), carbonMat);
+      pod.position.set(sx, h * 0.45, l * 0.05);
+      this.chassisGroup.add(pod);
+    });
 
-    // Hood scoop / vents for sports car
-    if (this.type === 'sports') {
-      const ventGeo = new THREE.BoxGeometry(w * 0.35, 0.08, l * 0.25);
-      const ventMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 });
-      const vent = new THREE.Mesh(ventGeo, ventMat);
-      vent.position.set(0, h * 0.68, -l * 0.22);
-      this.chassisGroup.add(vent);
-    }
-
-    // --- COCKPIT INTERIOR ---
+    // Cockpit & Seats
     const intMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.8 });
-    const floorGeo = new THREE.BoxGeometry(w * 0.86, 0.15, l * 0.45);
-    const floor = new THREE.Mesh(floorGeo, intMat);
-    floor.position.set(0, h * 0.4, -l * 0.02);
-    this.chassisGroup.add(floor);
-
-    // Bucket Seats (Driver & Passenger)
-    const seatGeo = new THREE.BoxGeometry(0.55, 0.6, 0.5);
-    const seatMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.7 });
-    
-    // Driver Seat (Left)
     this.driverSeat = new THREE.Group();
-    this.driverSeat.position.set(-w * 0.23, h * 0.55, -l * 0.02);
-    const dSeat = new THREE.Mesh(seatGeo, seatMat);
+    this.driverSeat.position.set(-w * 0.23, h * 0.52, -l * 0.02);
+
+    const seatMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.7 });
+    const dSeat = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.6, 0.5), seatMat);
     this.driverSeat.add(dSeat);
     this.chassisGroup.add(this.driverSeat);
 
-    // Passenger Seat (Right)
-    const pSeat = new THREE.Mesh(seatGeo, seatMat);
-    pSeat.position.set(w * 0.23, h * 0.55, -l * 0.02);
+    const pSeat = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.6, 0.5), seatMat);
+    pSeat.position.set(w * 0.23, h * 0.52, -l * 0.02);
     this.chassisGroup.add(pSeat);
 
-    // Dashboard
-    const dashGeo = new THREE.BoxGeometry(w * 0.86, 0.32, 0.4);
-    const dash = new THREE.Mesh(dashGeo, intMat);
-    dash.position.set(0, h * 0.72, -l * 0.22);
+    // Dashboard & Steering Wheel
+    const dash = new THREE.Mesh(new THREE.BoxGeometry(w * 0.86, 0.3, 0.4), intMat);
+    dash.position.set(0, h * 0.7, -l * 0.22);
     this.chassisGroup.add(dash);
 
-    // 3D Steering Wheel
-    const wheelTorus = new THREE.TorusGeometry(0.18, 0.03, 8, 16);
-    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x09090b, metalness: 0.5 });
-    this.steeringWheel = new THREE.Mesh(wheelTorus, wheelMat);
-    this.steeringWheel.position.set(-w * 0.23, h * 0.76, -l * 0.16);
+    this.steeringWheel = new THREE.Mesh(
+      new THREE.TorusGeometry(0.18, 0.03, 8, 16),
+      new THREE.MeshStandardMaterial({ color: 0x09090b, metalness: 0.6 })
+    );
+    this.steeringWheel.position.set(-w * 0.23, h * 0.74, -l * 0.16);
     this.steeringWheel.rotation.x = -Math.PI / 4;
     this.chassisGroup.add(this.steeringWheel);
 
-    // --- CABIN ROOF & TRANSPARENT TINTED GLASS ---
-    const roofMat = this.isPolice 
-      ? new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }) 
-      : bodyMat;
-    const roofGeo = new THREE.BoxGeometry(w * 0.82, 0.08, l * 0.38);
-    const roof = new THREE.Mesh(roofGeo, roofMat);
-    roof.position.set(0, h * 1.05, 0);
-    roof.castShadow = true;
+    // Canopy Roof & Privacy Tinted Glass
+    const roof = new THREE.Mesh(
+      new THREE.BoxGeometry(w * 0.8, 0.08, l * 0.36),
+      this.isPolice ? new THREE.MeshStandardMaterial({ color: 0xffffff }) : bodyMat
+    );
+    roof.position.set(0, h * 1.04, 0);
     this.chassisGroup.add(roof);
 
-    // Glass Windows (Transparent tinted for full driver visibility)
     const glassMat = new THREE.MeshStandardMaterial({
-      color: 0x94a3b8,
+      color: 0x1e293b,
       roughness: 0.1,
       metalness: 0.9,
       transparent: true,
-      opacity: 0.35 // Visible interior
+      opacity: 0.42
     });
 
     // Angled Windshield
-    const windGeo = new THREE.PlaneGeometry(w * 0.82, h * 0.55);
-    const windshield = new THREE.Mesh(windGeo, glassMat);
-    windshield.position.set(0, h * 0.85, -l * 0.22);
-    windshield.rotation.x = -Math.PI / 3.8;
+    const windshield = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.82, h * 0.58), glassMat);
+    windshield.position.set(0, h * 0.84, -l * 0.22);
+    windshield.rotation.x = -Math.PI / 3.6;
     this.chassisGroup.add(windshield);
 
-    // Rear Windshield
-    const rearWind = new THREE.Mesh(windGeo, glassMat);
-    rearWind.position.set(0, h * 0.85, l * 0.22);
-    rearWind.rotation.x = Math.PI / 3.8;
-    rearWind.rotation.y = Math.PI;
-    this.chassisGroup.add(rearWind);
+    // Rear Engine Louvers (Zentorno Hexagonal Louvers)
+    const rearLouvers = new THREE.Mesh(new THREE.BoxGeometry(w * 0.75, 0.12, l * 0.38), carbonMat);
+    rearLouvers.position.set(0, h * 0.82, l * 0.25);
+    this.chassisGroup.add(rearLouvers);
 
-    // Side Windows
-    [-w * 0.415, w * 0.415].forEach(sx => {
-      const sWinGeo = new THREE.PlaneGeometry(l * 0.38, h * 0.38);
-      const sWin = new THREE.Mesh(sWinGeo, glassMat);
-      sWin.position.set(sx, h * 0.85, 0);
-      sWin.rotation.y = sx > 0 ? Math.PI / 2 : -Math.PI / 2;
-      this.chassisGroup.add(sWin);
-
-      // Side mirrors
-      const mirGeo = new THREE.BoxGeometry(0.18, 0.12, 0.24);
-      const mir = new THREE.Mesh(mirGeo, bodyMat);
-      mir.position.set(sx * 1.06, h * 0.72, -l * 0.2);
-      this.chassisGroup.add(mir);
-    });
-
-    // Rear Spoiler
+    // GT Race Wing
     if (this.type === 'sports') {
-      const spGeo = new THREE.BoxGeometry(w * 0.92, 0.08, 0.38);
-      const spMat = new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.3 });
-      const spoiler = new THREE.Mesh(spGeo, spMat);
-      spoiler.position.set(0, h * 1.02, l * 0.46);
-      this.chassisGroup.add(spoiler);
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(w * 0.95, 0.08, 0.4), carbonMat);
+      wing.position.set(0, h * 1.08, l * 0.46);
+      this.chassisGroup.add(wing);
 
-      // Struts
       [-w * 0.35, w * 0.35].forEach(spX => {
-        const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.35, 6), spMat);
-        strut.position.set(spX, h * 0.85, l * 0.46);
+        const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.38, 6), carbonMat);
+        strut.position.set(spX, h * 0.9, l * 0.46);
         this.chassisGroup.add(strut);
       });
     }
 
-    // Chrome Headlights with Projector Lenses
+    // Rear Carbon Diffuser
+    const diffuser = new THREE.Mesh(new THREE.BoxGeometry(w * 0.92, 0.22, 0.45), carbonMat);
+    diffuser.position.set(0, h * 0.2, l * 0.52);
+    this.chassisGroup.add(diffuser);
+
+    // Dual Center Exhaust Pipes
+    this.exhaustPipes = [];
+    [-0.18, 0.18].forEach(exX => {
+      const ex = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.09, 0.09, 0.25, 10),
+        new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.95 })
+      );
+      ex.rotation.x = Math.PI / 2;
+      ex.position.set(exX, h * 0.24, l * 0.52);
+      this.chassisGroup.add(ex);
+      this.exhaustPipes.push(ex);
+    });
+
+    // 3D Exhaust Flame Cones (Blue Nitro / Orange Backfire)
+    this.flameMeshes = [];
+    [-0.18, 0.18].forEach(fx => {
+      const fGeo = new THREE.ConeGeometry(0.18, 0.8, 8);
+      const fMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8, // Cyan Blue Nitro Flame
+        transparent: true,
+        opacity: 0.9
+      });
+      const flame = new THREE.Mesh(fGeo, fMat);
+      flame.rotation.x = -Math.PI / 2;
+      flame.position.set(fx, h * 0.24, l * 0.52 + 0.45);
+      flame.visible = false;
+      this.chassisGroup.add(flame);
+      this.flameMeshes.push(flame);
+    });
+
+    // Projector Headlights
     this.headlights = [];
     [-w * 0.36, w * 0.36].forEach(x => {
-      const hBucket = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.18, 0.18, 0.15, 12),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.95 })
-      );
-      hBucket.rotation.x = Math.PI / 2;
-      hBucket.position.set(x, h * 0.46, -l * 0.51);
-      this.chassisGroup.add(hBucket);
-
-      const spot = new THREE.SpotLight(0xfffaed, 2.8, 48, Math.PI / 5, 0.4);
+      const spot = new THREE.SpotLight(0xfffaed, 2.8, 50, Math.PI / 5, 0.4);
       spot.position.set(x, h * 0.46, -l * 0.5);
       spot.target.position.set(x, 0, -l * 0.5 - 25);
       this.chassisGroup.add(spot);
@@ -221,45 +221,32 @@ class Vehicle {
       this.headlights.push(spot);
     });
 
-    // LED Taillight Bar
+    // LED Taillights
     this.taillightMeshes = [];
     [-w * 0.36, w * 0.36].forEach(x => {
-      const tMat = new THREE.MeshBasicMaterial({ color: 0x990000 });
-      const tLamp = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.14, 0.1), tMat);
+      const tLamp = new THREE.Mesh(
+        new THREE.BoxGeometry(0.42, 0.14, 0.1),
+        new THREE.MeshBasicMaterial({ color: 0x990000 })
+      );
       tLamp.position.set(x, h * 0.48, l * 0.51);
       this.chassisGroup.add(tLamp);
       this.taillightMeshes.push(tLamp);
     });
 
-    // Dual Chrome Exhaust Pipes
-    [-0.32, 0.32].forEach(exX => {
-      const exGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.3, 10);
-      const exMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 });
-      const exhaust = new THREE.Mesh(exGeo, exMat);
-      exhaust.rotation.x = Math.PI / 2;
-      exhaust.position.set(exX, h * 0.22, l * 0.52);
-      this.chassisGroup.add(exhaust);
-    });
-
-    // Police Flasher Bar
+    // Police Lightbar
     if (this.isPolice) {
-      const barGeo = new THREE.BoxGeometry(w * 0.72, 0.15, 0.35);
-      const bar = new THREE.Mesh(barGeo, new THREE.MeshStandardMaterial({ color: 0x111827 }));
-      bar.position.set(0, h * 1.25, 0);
-      this.chassisGroup.add(bar);
-
       this.redFlasher = new THREE.Mesh(
         new THREE.BoxGeometry(w * 0.28, 0.18, 0.32),
         new THREE.MeshBasicMaterial({ color: 0xff0000 })
       );
-      this.redFlasher.position.set(-w * 0.2, h * 1.25, 0);
+      this.redFlasher.position.set(-w * 0.2, h * 1.22, 0);
       this.chassisGroup.add(this.redFlasher);
 
       this.blueFlasher = new THREE.Mesh(
         new THREE.BoxGeometry(w * 0.28, 0.18, 0.32),
         new THREE.MeshBasicMaterial({ color: 0x0066ff })
       );
-      this.blueFlasher.position.set(w * 0.2, h * 1.25, 0);
+      this.blueFlasher.position.set(w * 0.2, h * 1.22, 0);
       this.chassisGroup.add(this.blueFlasher);
 
       this.sirenRedLight = new THREE.PointLight(0xff0000, 0, 16);
@@ -271,51 +258,41 @@ class Vehicle {
       this.chassisGroup.add(this.sirenBlueLight);
     }
 
-    // --- 4 ALLOY WHEELS ---
+    // Wheels with Red Calipers
     this.wheels = [];
     const wheelRadius = 0.40;
     const wheelWidth = 0.30;
     const tireMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.9 });
-    const rimMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.2 });
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0x09090b, metalness: 0.95, roughness: 0.2 });
 
     const wheelOffsets = [
-      { x: -w * 0.47, z: -l * 0.33, isFront: true },
-      { x:  w * 0.47, z: -l * 0.33, isFront: true },
-      { x: -w * 0.47, z:  l * 0.33, isFront: false },
-      { x:  w * 0.47, z:  l * 0.33, isFront: false }
+      { x: -w * 0.48, z: -l * 0.33, isFront: true },
+      { x:  w * 0.48, z: -l * 0.33, isFront: true },
+      { x: -w * 0.48, z:  l * 0.33, isFront: false },
+      { x:  w * 0.48, z:  l * 0.33, isFront: false }
     ];
 
     wheelOffsets.forEach(cfg => {
       const wheelHolder = new THREE.Group();
       wheelHolder.position.set(cfg.x, wheelRadius, cfg.z);
 
-      // Rubber Tire
-      const tireGeo = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 20);
-      tireGeo.rotateZ(Math.PI / 2);
-      const tire = new THREE.Mesh(tireGeo, tireMat);
+      const tire = new THREE.Mesh(new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 18), tireMat);
+      tire.rotateZ(Math.PI / 2);
       tire.castShadow = true;
       wheelHolder.add(tire);
 
-      // Alloy Rim (5-spoke star)
-      const rimGeo = new THREE.CylinderGeometry(wheelRadius * 0.72, wheelRadius * 0.72, wheelWidth * 1.02, 10);
-      rimGeo.rotateZ(Math.PI / 2);
-      const rim = new THREE.Mesh(rimGeo, rimMat);
+      // Alloy Rim
+      const rim = new THREE.Mesh(new THREE.CylinderGeometry(wheelRadius * 0.72, wheelRadius * 0.72, wheelWidth * 1.02, 10), rimMat);
+      rim.rotateZ(Math.PI / 2);
       wheelHolder.add(rim);
 
-      // Brake Caliper (Red)
-      const calGeo = new THREE.BoxGeometry(0.12, 0.18, 0.16);
-      const cal = new THREE.Mesh(calGeo, new THREE.MeshBasicMaterial({ color: 0xdc2626 }));
+      // Red Brake Caliper
+      const cal = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.16), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
       cal.position.set(0, wheelRadius * 0.4, 0);
       wheelHolder.add(cal);
 
       this.mesh.add(wheelHolder);
-      this.wheels.push({
-        group: wheelHolder,
-        tire: tire,
-        isFront: cfg.isFront,
-        rotationX: 0,
-        origOffset: cfg
-      });
+      this.wheels.push({ group: wheelHolder, tire: tire, isFront: cfg.isFront, rotationX: 0 });
     });
 
     this.mesh.userData = { entity: this };
@@ -324,7 +301,6 @@ class Vehicle {
   }
 
   createPromptBadge() {
-    // 3D In-World Floating Billboard over car
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 64;
@@ -343,10 +319,9 @@ class Vehicle {
     ctx.fillText('[ENTER / F] DRIVE', 128, 38);
 
     const tex = new THREE.CanvasTexture(canvas);
-    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-    this.promptSprite = new THREE.Sprite(mat);
+    this.promptSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
     this.promptSprite.scale.set(3.2, 0.8, 1);
-    this.promptSprite.position.set(0, 2.6, 0);
+    this.promptSprite.position.set(0, 2.5, 0);
     this.promptSprite.visible = false;
     this.mesh.add(this.promptSprite);
   }
@@ -368,42 +343,67 @@ class Vehicle {
     const left = input.left || false;
     const right = input.right || false;
     const handbrake = input.handbrake || false;
+    const nitroPressed = input.nitro || false;
     this.isHandbraking = handbrake;
 
-    // --- ACCELERATION & BRAKING ---
-    if (forward) {
-      if (this.speed < 0) {
-        this.speed += this.brakeForce * delta;
-      } else {
-        this.speed = Math.min(this.maxSpeed, this.speed + this.acceleration * delta);
-      }
-    } else if (backward) {
-      if (this.speed > 0) {
-        this.speed -= this.brakeForce * delta;
-      } else {
-        this.speed = Math.max(-this.reverseMaxSpeed, this.speed - this.acceleration * 0.7 * delta);
-      }
-    } else {
-      this.speed *= this.friction;
-      if (Math.abs(this.speed) < 0.1) this.speed = 0;
+    // --- BURNOUT MECHANIC (HOLD GAS + BRAKE AT STANDSTILL) ---
+    this.isBurnout = (forward && backward && Math.abs(this.speed) < 3);
+    if (this.isBurnout) {
+      this.spawnTireSmoke(delta, 1.2);
+      window.soundEngine?.setTireScreech(true);
+      this.speed = 0;
     }
 
-    // Drifting & burnout
+    // --- NITRO BOOST SYSTEM ---
+    if (nitroPressed && this.nitro > 0 && Math.abs(this.speed) > 2) {
+      this.isNitroActive = true;
+      this.nitro = Math.max(0, this.nitro - delta * 30);
+      this.speed = Math.min(68, this.speed + this.acceleration * 1.8 * delta); // 80+ MPH
+      this.triggerFlames(true, 0x38bdf8); // Cyan Nitro Flames
+      window.soundEngine?.playNitro();
+    } else {
+      this.isNitroActive = false;
+      this.nitro = Math.min(this.maxNitro, this.nitro + delta * 12); // Recharge nitro
+    }
+
+    // --- ACCELERATION & BRAKING ---
+    if (!this.isBurnout) {
+      if (forward) {
+        if (this.speed < 0) {
+          this.speed += this.brakeForce * delta;
+        } else {
+          this.speed = Math.min(this.maxSpeed, this.speed + this.acceleration * delta);
+        }
+        this.wasAccelerating = true;
+      } else if (backward) {
+        if (this.speed > 0) {
+          this.speed -= this.brakeForce * delta;
+        } else {
+          this.speed = Math.max(-this.reverseMaxSpeed, this.speed - this.acceleration * 0.7 * delta);
+        }
+      } else {
+        // Letting off throttle -> Trigger exhaust pop & flame
+        if (this.wasAccelerating && Math.abs(this.speed) > 15) {
+          this.wasAccelerating = false;
+          this.triggerFlames(false, 0xf97316); // Orange backfire flame
+          window.soundEngine?.playExhaustPop();
+        }
+        this.speed *= this.friction;
+        if (Math.abs(this.speed) < 0.1) this.speed = 0;
+      }
+    }
+
+    // Drifting
     if (handbrake) {
       this.speed *= 0.97;
-      this.driftFactor = Math.min(1.0, this.driftFactor + delta * 3.5);
-      if (Math.abs(this.speed) > 7) {
+      this.driftFactor = Math.min(1.0, this.driftFactor + delta * 4.0);
+      if (Math.abs(this.speed) > 6) {
         window.soundEngine?.setTireScreech(true);
         this.spawnDriftSmokeAndSkid(delta);
       }
-    } else {
+    } else if (!this.isBurnout) {
       this.driftFactor = Math.max(0, this.driftFactor - delta * 2.5);
       window.soundEngine?.setTireScreech(false);
-    }
-
-    // Burnout smoke from standstill
-    if (forward && Math.abs(this.speed) < 8 && Math.abs(this.speed) > 0.5) {
-      this.spawnTireSmoke(delta);
     }
 
     // Taillights
@@ -412,21 +412,19 @@ class Vehicle {
       mesh.material.color.setHex(isBraking ? 0xff1111 : 0x880000);
     });
 
-    // --- STEERING ---
+    // Steering
     let targetSteer = 0;
     if (left) targetSteer = this.maxSteerAngle;
     if (right) targetSteer = -this.maxSteerAngle;
 
     const speedRatio = Math.min(1.0, Math.abs(this.speed) / this.maxSpeed);
     const steerSensitivity = 1.0 - speedRatio * 0.42;
-    this.steerAngle += (targetSteer * steerSensitivity - this.steerAngle) * delta * 9.0;
+    this.steerAngle += (targetSteer * steerSensitivity - this.steerAngle) * delta * 9.5;
 
-    // Rotate steering wheel inside cockpit
     if (this.steeringWheel) {
       this.steeringWheel.rotation.z = -this.steerAngle * 2.2;
     }
 
-    // Yaw rotation
     if (Math.abs(this.speed) > 0.1) {
       const dir = this.speed >= 0 ? 1 : -1;
       const turnMultiplier = 1.0 + (this.driftFactor * 0.85);
@@ -476,6 +474,14 @@ class Vehicle {
       }
     });
 
+    // Update Flames
+    if (this.flameTimer > 0) {
+      this.flameTimer -= delta;
+      if (this.flameTimer <= 0) {
+        this.flameMeshes.forEach(f => f.visible = false);
+      }
+    }
+
     // Police flashers
     if (this.isPolice && this.sirenActive) {
       this.sirenTimer += delta * 8;
@@ -486,30 +492,33 @@ class Vehicle {
       this.sirenBlueLight.intensity = !flash ? 9 : 0;
     }
 
-    // Damage smoke
     if (this.health < 40) {
       this.spawnDamageSmoke(delta);
     }
   }
 
-  spawnDriftSmokeAndSkid(delta) {
-    this.spawnTireSmoke(delta);
+  triggerFlames(isNitro, colorHex) {
+    this.flameTimer = isNitro ? 0.2 : 0.12;
+    this.flameMeshes.forEach(f => {
+      f.visible = true;
+      f.material.color.setHex(colorHex);
+      f.scale.set(1 + Math.random() * 0.4, 1 + Math.random() * 0.6, 1);
+    });
+  }
 
-    // Spawn skid marks on road surface
+  spawnDriftSmokeAndSkid(delta) {
+    this.spawnTireSmoke(delta, 1.0);
+
     if (Math.random() > 0.4) {
       [-this.dimensions.w * 0.44, this.dimensions.w * 0.44].forEach(xOff => {
         const markPos = new THREE.Vector3(xOff, 0.05, this.dimensions.l * 0.33);
         markPos.applyEuler(new THREE.Euler(0, this.rotation, 0));
         markPos.add(this.position);
 
-        const skidGeo = new THREE.PlaneGeometry(0.32, 1.2);
-        const skidMat = new THREE.MeshBasicMaterial({
-          color: 0x050505,
-          transparent: true,
-          opacity: 0.65,
-          depthWrite: false
-        });
-        const skid = new THREE.Mesh(skidGeo, skidMat);
+        const skid = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.32, 1.2),
+          new THREE.MeshBasicMaterial({ color: 0x050505, transparent: true, opacity: 0.65, depthWrite: false })
+        );
         skid.rotation.x = -Math.PI / 2;
         skid.rotation.z = this.rotation;
         skid.position.copy(markPos);
@@ -520,16 +529,13 @@ class Vehicle {
     }
   }
 
-  spawnTireSmoke(delta) {
-    if (Math.random() > 0.45) return;
+  spawnTireSmoke(delta, density = 1.0) {
+    if (Math.random() > 0.4 * density) return;
     [-this.dimensions.w * 0.42, this.dimensions.w * 0.42].forEach(xOff => {
-      const smokeGeo = new THREE.SphereGeometry(0.35, 6, 6);
-      const smokeMat = new THREE.MeshBasicMaterial({
-        color: 0xcccccc,
-        transparent: true,
-        opacity: 0.6
-      });
-      const sMesh = new THREE.Mesh(smokeGeo, smokeMat);
+      const sMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.35 * density, 6, 6),
+        new THREE.MeshBasicMaterial({ color: 0xdddddd, transparent: true, opacity: 0.65 })
+      );
       const sPos = new THREE.Vector3(xOff, 0.3, this.dimensions.l * 0.35);
       sPos.applyEuler(new THREE.Euler(0, this.rotation, 0));
       sMesh.position.copy(this.position).add(sPos);
@@ -537,8 +543,8 @@ class Vehicle {
 
       this.smokeParticles.push({
         mesh: sMesh,
-        vel: new THREE.Vector3((Math.random()-0.5)*2, Math.random()*2 + 1, (Math.random()-0.5)*2),
-        life: 0.65
+        vel: new THREE.Vector3((Math.random()-0.5)*2.5, Math.random()*2 + 1.2, (Math.random()-0.5)*2.5),
+        life: 0.7
       });
     });
   }
@@ -564,13 +570,10 @@ class Vehicle {
 
   spawnDamageSmoke(delta) {
     if (Math.random() > 0.3) return;
-    const smokeGeo = new THREE.SphereGeometry(0.35, 4, 4);
-    const smokeMat = new THREE.MeshBasicMaterial({
-      color: this.health < 20 ? 0x111111 : 0x555555,
-      transparent: true,
-      opacity: 0.65
-    });
-    const sm = new THREE.Mesh(smokeGeo, smokeMat);
+    const sm = new THREE.Mesh(
+      new THREE.SphereGeometry(0.35, 4, 4),
+      new THREE.MeshBasicMaterial({ color: this.health < 20 ? 0x111111 : 0x555555, transparent: true, opacity: 0.65 })
+    );
     const hoodOffset = new THREE.Vector3(0, 0.8, -this.dimensions.l * 0.35)
       .applyEuler(new THREE.Euler(0, this.rotation, 0));
     sm.position.copy(this.position).add(hoodOffset);

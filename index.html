@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GTA: Vice & Liberty 3D</title>
+  <title>Grand Theft Auto V - Los Santos 3D</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="data:,">
 </head>
@@ -11,9 +11,9 @@
   <!-- 3D WEBGL CANVAS -->
   <div id="canvas-container"></div>
 
-  <!-- IN-GAME HUD OVERLAY -->
+  <!-- IN-GAME GTA 5 HUD -->
   <div id="hud">
-    <!-- TOP RIGHT: VITAL STATS & CASH -->
+    <!-- TOP RIGHT: CASH, WANTED STARS, WEAPON INFO -->
     <div id="top-right-hud">
       <div id="clock-display">12:00 PM</div>
       <div id="cash-display">$00000350</div>
@@ -27,23 +27,7 @@
         <span class="star" id="star-5">★</span>
       </div>
 
-      <!-- HEALTH & ARMOR BARS -->
-      <div class="vital-bars">
-        <div class="vital-bar-container">
-          <span class="vital-icon">❤️</span>
-          <div class="bar-track">
-            <div id="health-bar-fill"></div>
-          </div>
-        </div>
-        <div class="vital-bar-container">
-          <span class="vital-icon">🛡️</span>
-          <div class="bar-track">
-            <div id="armor-bar-fill"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- WEAPON HUD -->
+      <!-- CURRENT WEAPON HUD -->
       <div id="weapon-hud-box">
         <div id="weapon-icon">🔫</div>
         <div id="weapon-info">
@@ -53,45 +37,57 @@
       </div>
     </div>
 
-    <!-- TOP LEFT: RADIO STATION -->
-    <div id="radio-hud">
-      <span style="font-size: 18px;">📻</span>
-      <span id="radio-station-title">Flash 98.2 FM (Synthwave)</span>
-    </div>
-
-    <!-- BOTTOM LEFT: RADAR MINIMAP -->
+    <!-- BOTTOM LEFT: GTA 5 RECTANGULAR GPS RADAR & INTEGRATED VITALS -->
     <div id="minimap-wrapper">
-      <div id="district-label">Downtown Ocean Ave</div>
+      <div id="district-label">Vinewood Blvd</div>
       <div id="radar-frame">
-        <canvas id="radar-canvas" width="180" height="180"></canvas>
+        <canvas id="radar-canvas" width="220" height="140"></canvas>
         <div id="radar-north">N</div>
-        <div id="radar-cross"></div>
+      </div>
+      <!-- GTA 5 Integrated Vitals under Radar -->
+      <div id="gta5-vitals">
+        <div class="gta5-bar-wrap" title="Health">
+          <div id="health-bar-fill"></div>
+        </div>
+        <div class="gta5-bar-wrap" title="Armor">
+          <div id="armor-bar-fill"></div>
+        </div>
+        <div class="gta5-bar-wrap" title="Stamina / Ability">
+          <div id="stamina-bar-fill"></div>
+        </div>
       </div>
     </div>
 
-    <!-- BOTTOM RIGHT: VEHICLE SPEEDOMETER -->
+    <!-- BOTTOM RIGHT: VEHICLE SPEEDOMETER & NITRO GAUGE -->
     <div id="vehicle-hud">
-      <div id="vehicle-name">Banshee GT</div>
+      <div id="vehicle-name">Pegassi Zentorno</div>
       <div class="speedo-row">
         <div id="speed-value">0</div>
         <div id="speed-unit">MPH</div>
       </div>
-      <div class="vehicle-health-track">
-        <div id="vehicle-health-fill"></div>
+      <div class="gauge-row">
+        <span>HP</span>
+        <div class="gauge-track">
+          <div id="vehicle-health-fill"></div>
+        </div>
+      </div>
+      <div class="gauge-row">
+        <span>NITRO</span>
+        <div class="gauge-track">
+          <div id="nitro-fill"></div>
+        </div>
       </div>
     </div>
 
-    <!-- COMBAT CROSSHAIR -->
+    <!-- DYNAMIC GTA 5 RETICLE & HITMARKER -->
     <div id="crosshair">
       <div class="cross-dot"></div>
-      <div class="cross-tick top"></div>
-      <div class="cross-tick bottom"></div>
-      <div class="cross-tick left"></div>
-      <div class="cross-tick right"></div>
+      <div class="reticle-ring"></div>
     </div>
+    <div id="hitmarker"></div>
 
-    <!-- INTERACTION PROMPT -->
-    <div id="prompt-tip"><span class="key-badge">ENTER / F</span> Drive Vehicle</div>
+    <!-- PROMPT TIP -->
+    <div id="prompt-tip"><span class="key-badge">ENTER / F</span> Drive Pegassi Zentorno</div>
 
     <!-- MISSION NOTIFICATION BANNER -->
     <div id="mission-banner">
@@ -99,52 +95,114 @@
       <div id="mission-desc">+ $5,000 Reward</div>
     </div>
 
-    <!-- WASTED / BUSTED OVERLAY -->
+    <!-- WASTED OVERLAY -->
     <div id="death-screen">
       <div id="death-text">WASTED</div>
-      <div id="death-subtitle">Respawning at Vice Central Medical...</div>
+      <div id="death-subtitle">Respawning at Los Santos Medical...</div>
     </div>
 
-    <!-- CONTROLS & HELP MODAL -->
-    <div id="controls-modal" class="interactive">
-      <div class="modal-header">
-        <h2>Vice City 3D - Controls</h2>
-        <span style="color:#718096; font-size:14px;">Press [H] or [ESC] to close</span>
+    <!-- GTA 5 CIRCULAR WEAPON WHEEL (TAB) -->
+    <div id="weapon-wheel-overlay">
+      <div id="wheel-container">
+        <!-- 8 Weapon Slots around Circle -->
+        <div class="wheel-slot" id="slot-0" style="top: 15%; left: 50%;">
+          <div class="w-icon">👊</div>
+          <div class="w-title">Fists</div>
+        </div>
+        <div class="wheel-slot" id="slot-1" style="top: 25%; left: 85%;">
+          <div class="w-icon">🔫</div>
+          <div class="w-title">Pistol</div>
+        </div>
+        <div class="wheel-slot" id="slot-2" style="top: 50%; left: 95%;">
+          <div class="w-icon">⚡</div>
+          <div class="w-title">SMG</div>
+        </div>
+        <div class="wheel-slot" id="slot-3" style="top: 75%; left: 85%;">
+          <div class="w-icon">💥</div>
+          <div class="w-title">Shotgun</div>
+        </div>
+        <div class="wheel-slot" id="slot-4" style="top: 85%; left: 50%;">
+          <div class="w-icon">🚀</div>
+          <div class="w-title">Heavy</div>
+        </div>
+        <div class="wheel-slot" id="slot-5" style="top: 75%; left: 15%;">
+          <div class="w-icon">💣</div>
+          <div class="w-title">Grenade</div>
+        </div>
+        <div class="wheel-slot" id="slot-6" style="top: 50%; left: 5%;">
+          <div class="w-icon">🗡️</div>
+          <div class="w-title">Melee</div>
+        </div>
+        <div class="wheel-slot" id="slot-7" style="top: 25%; left: 15%;">
+          <div class="w-icon">🎯</div>
+          <div class="w-title">Sniper</div>
+        </div>
+
+        <div id="wheel-center-info">
+          <div id="wheel-center-name">9mm Pistol</div>
+          <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">RELEASE [TAB] TO SELECT</div>
+        </div>
       </div>
-      <div class="controls-grid">
-        <div class="control-item"><span>Move / Steer</span><span class="k">Arrows or WASD</span></div>
-        <div class="control-item"><span>Look / Aim</span><span class="k">Mouse</span></div>
-        <div class="control-item"><span>Sprint</span><span class="k">Shift</span></div>
-        <div class="control-item"><span>Handbrake / Jump</span><span class="k">Space</span></div>
-        <div class="control-item"><span>Enter / Drive Car</span><span class="k">ENTER, F, or Click</span></div>
-        <div class="control-item"><span>Fire / Punch</span><span class="k">Left Mouse</span></div>
-        <div class="control-item"><span>Aim Zoom</span><span class="k">Right Mouse</span></div>
-        <div class="control-item"><span>Switch Weapon</span><span class="k">1 - 5 / Wheel</span></div>
-        <div class="control-item"><span>Throw Grenade</span><span class="k">G</span></div>
-        <div class="control-item"><span>Change Radio</span><span class="k">R</span></div>
-        <div class="control-item"><span>Horn / Siren</span><span class="k">H / E (Car)</span></div>
-        <div class="control-item"><span>Camera View</span><span class="k">V</span></div>
+    </div>
+
+    <!-- INTERACTIVE iFRUIT SMARTPHONE (P or UP ARROW) -->
+    <div id="ifruit-phone">
+      <div class="phone-top-notch"></div>
+      <div class="phone-screen">
+        <div class="phone-header">
+          <span>iFruit 5G</span>
+          <span id="phone-clock">12:00</span>
+          <span>100% 🔋</span>
+        </div>
+
+        <div class="phone-app-grid">
+          <!-- CHEATS & SERVICES -->
+          <div class="app-btn" id="app-spawn-car">
+            <div class="app-icon-wrap" style="background: linear-gradient(135deg, #ef4444, #dc2626);">🏎️</div>
+            <span>Spawn GT</span>
+          </div>
+          <div class="app-btn" id="app-max-cash">
+            <div class="app-icon-wrap" style="background: linear-gradient(135deg, #10b981, #059669);">💵</div>
+            <span>+$100k</span>
+          </div>
+          <div class="app-btn" id="app-heal">
+            <div class="app-icon-wrap" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">❤️</div>
+            <span>Full Heal</span>
+          </div>
+          <div class="app-btn" id="app-clear-wanted">
+            <div class="app-icon-wrap" style="background: linear-gradient(135deg, #f59e0b, #d97706);">⭐</div>
+            <span>Lose Cops</span>
+          </div>
+          <div class="app-btn" id="app-max-ammo">
+            <div class="app-icon-wrap" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">🚀</div>
+            <span>Max Guns</span>
+          </div>
+          <div class="app-btn" id="app-mission">
+            <div class="app-icon-wrap" style="background: linear-gradient(135deg, #ec4899, #db2777);">📞</div>
+            <span>Lamar Heist</span>
+          </div>
+        </div>
+
+        <div style="margin-top: auto; text-align: center; color: #64748b; font-size: 11px;">
+          Press [P] or Home Bar to Close
+        </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn-primary" id="btn-resume">RESUME GAME</button>
-      </div>
+      <div class="phone-home-bar" id="phone-home-btn"></div>
     </div>
 
     <!-- START / CLICK TO PLAY OVERLAY -->
     <div id="start-screen" class="interactive">
-      <div id="start-title">GRAND THEFT AUTO</div>
-      <div id="start-sub">Vice & Liberty 3D • WebGL Edition</div>
-      <div class="pulse-prompt">CLICK ANYWHERE TO START</div>
-      <div style="margin-top: 24px; color: #718096; font-size: 13px;">
-        High-Octane 3D Open World • Police Chases • Vehicle Drifting • Weapons
+      <div id="start-title">GRAND THEFT AUTO V</div>
+      <div id="start-sub">Los Santos • WebGL 3D Edition</div>
+      <div class="pulse-prompt">PRESS ANY KEY OR CLICK TO START</div>
+      <div style="margin-top: 24px; color: #94a3b8; font-size: 13px; max-width: 500px; text-align: center; line-height: 1.6;">
+        <b>[Arrows / WASD]</b> Move & Drive • <b>[ENTER / F]</b> Pegassi Zentorno<br>
+        <b>[TAB]</b> Slow-Mo Weapon Wheel • <b>[Shift]</b> Nitro Boost • <b>[P]</b> iFruit Phone
       </div>
     </div>
   </div>
 
-  <!-- LOAD THREE.JS FIRST -->
   <script src="libs/three.min.js"></script>
-
-  <!-- GAME MODULES -->
   <script src="js/audio.js"></script>
   <script src="js/camera.js"></script>
   <script src="js/weapons.js"></script>

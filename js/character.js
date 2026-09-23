@@ -272,7 +272,8 @@ class PlayerCharacter {
         backward: this.isDown(),
         left: this.isLeft(),
         right: this.isRight(),
-        handbrake: this.keys['Space'] || this.keys[' '] || false
+        handbrake: this.keys['Space'] || this.keys[' '] || false,
+        nitro: this.keys['ShiftLeft'] || this.keys['ShiftRight'] || this.keys['Shift'] || false
       };
 
       v.update(delta, vInput, [...cityObstacles, ...vehicles]);
@@ -302,6 +303,15 @@ class PlayerCharacter {
 
     // Restore weapon on-foot
     this.weaponProp.visible = (this.weaponMgr.current.id !== 'fists');
+
+    // Stamina calculation (GTA 5 yellow bar)
+    if (!this.stamina) this.stamina = 100;
+    if (this.isSprinting) {
+      this.stamina = Math.max(0, this.stamina - delta * 25);
+    } else {
+      this.stamina = Math.min(100, this.stamina + delta * 20);
+    }
+    window.ui?.updateVitals(this.health, this.armor, this.stamina);
 
     // --- ON-FOOT MOVEMENT (WASD & ARROW KEYS) ---
     const up = this.isUp();

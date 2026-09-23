@@ -148,7 +148,8 @@ class GameEngine {
 
     const rawDelta = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
-    const delta = Math.min(rawDelta, 0.05);
+    const timeScale = window.bulletTime || 1.0;
+    const delta = Math.min(rawDelta, 0.05) * timeScale;
 
     if (this.ui.isPaused) return;
 
