@@ -50,29 +50,36 @@ class UIManager {
   }
 
   setupListeners() {
-    // Start Game Overlay
-    this.startScreen?.addEventListener('click', () => {
-      this.startScreen.style.display = 'none';
-      window.soundEngine?.init();
-      document.getElementById('canvas-container')?.requestPointerLock();
-    });
+    // Start Game Overlay (dismiss on click or any key)
+    const dismissStart = () => {
+      if (this.startScreen && this.startScreen.style.display !== 'none') {
+        this.startScreen.style.display = 'none';
+        window.soundEngine?.init();
+        try {
+          document.getElementById('canvas-container')?.requestPointerLock();
+        } catch(e) {}
+      }
+    };
+    this.startScreen?.addEventListener('click', dismissStart);
+    window.addEventListener('keydown', dismissStart);
 
     // Resume button
     this.btnResume?.addEventListener('click', () => {
       this.togglePause(false);
-      document.getElementById('canvas-container')?.requestPointerLock();
+      try {
+        document.getElementById('canvas-container')?.requestPointerLock();
+      } catch(e) {}
     });
 
     // Pause / Controls toggle with H or Escape
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyH') {
+      if (e.code === 'KeyH' || e.key === 'h' || e.key === 'H') {
         this.togglePause();
       }
-      if (e.code === 'Escape') {
+      if (e.code === 'Escape' || e.key === 'Escape') {
         this.togglePause(!this.isPaused);
       }
-      // Radio cycle with R inside vehicle
-      if (e.code === 'KeyR' && window.game?.player?.inVehicle) {
+      if ((e.code === 'KeyR' || e.key === 'r' || e.key === 'R') && window.game?.player?.inVehicle) {
         const station = window.soundEngine?.cycleRadio();
         if (station) this.showRadioHUD(station);
       }
