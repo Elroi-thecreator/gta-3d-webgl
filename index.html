@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GTA: Vice & Liberty 3D</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <!-- 3D WEBGL CANVAS -->
+  <div id="canvas-container"></div>
+
+  <!-- IN-GAME HUD OVERLAY -->
+  <div id="hud">
+    <!-- TOP RIGHT: VITAL STATS & CASH -->
+    <div id="top-right-hud">
+      <div id="clock-display">12:00 PM</div>
+      <div id="cash-display">$00000350</div>
+      
+      <!-- 5-STAR WANTED LEVEL -->
+      <div id="wanted-stars">
+        <span class="star" id="star-1">★</span>
+        <span class="star" id="star-2">★</span>
+        <span class="star" id="star-3">★</span>
+        <span class="star" id="star-4">★</span>
+        <span class="star" id="star-5">★</span>
+      </div>
+
+      <!-- HEALTH & ARMOR BARS -->
+      <div class="vital-bars">
+        <div class="vital-bar-container">
+          <span class="vital-icon">❤️</span>
+          <div class="bar-track">
+            <div id="health-bar-fill"></div>
+          </div>
+        </div>
+        <div class="vital-bar-container">
+          <span class="vital-icon">🛡️</span>
+          <div class="bar-track">
+            <div id="armor-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEAPON HUD -->
+      <div id="weapon-hud-box">
+        <div id="weapon-icon">🔫</div>
+        <div id="weapon-info">
+          <div id="weapon-name">9mm Pistol</div>
+          <div id="ammo-display">17 / 68</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP LEFT: RADIO STATION -->
+    <div id="radio-hud">
+      <span style="font-size: 18px;">📻</span>
+      <span id="radio-station-title">Flash 98.2 FM (Synthwave)</span>
+    </div>
+
+    <!-- BOTTOM LEFT: RADAR MINIMAP -->
+    <div id="minimap-wrapper">
+      <div id="district-label">Downtown Ocean Ave</div>
+      <div id="radar-frame">
+        <canvas id="radar-canvas" width="180" height="180"></canvas>
+        <div id="radar-north">N</div>
+        <div id="radar-cross"></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM RIGHT: VEHICLE SPEEDOMETER -->
+    <div id="vehicle-hud">
+      <div id="vehicle-name">Banshee GT</div>
+      <div class="speedo-row">
+        <div id="speed-value">0</div>
+        <div id="speed-unit">MPH</div>
+      </div>
+      <div class="vehicle-health-track">
+        <div id="vehicle-health-fill"></div>
+      </div>
+    </div>
+
+    <!-- COMBAT CROSSHAIR -->
+    <div id="crosshair">
+      <div class="cross-dot"></div>
+      <div class="cross-tick top"></div>
+      <div class="cross-tick bottom"></div>
+      <div class="cross-tick left"></div>
+      <div class="cross-tick right"></div>
+    </div>
+
+    <!-- INTERACTION PROMPT -->
+    <div id="prompt-tip"><span class="key-badge">F</span> Enter Vehicle</div>
+
+    <!-- MISSION NOTIFICATION BANNER -->
+    <div id="mission-banner">
+      <div id="mission-title">Mission Passed!</div>
+      <div id="mission-desc">+ $5,000 Reward</div>
+    </div>
+
+    <!-- WASTED / BUSTED OVERLAY -->
+    <div id="death-screen">
+      <div id="death-text">WASTED</div>
+      <div id="death-subtitle">Respawning at Vice Central Medical...</div>
+    </div>
+
+    <!-- CONTROLS & HELP MODAL -->
+    <div id="controls-modal" class="interactive">
+      <div class="modal-header">
+        <h2>Vice City 3D - Controls</h2>
+        <span style="color:#718096; font-size:14px;">Press [H] or [ESC] to close</span>
+      </div>
+      <div class="controls-grid">
+        <div class="control-item"><span>Move / Steer</span><span class="k">W A S D</span></div>
+        <div class="control-item"><span>Look / Aim</span><span class="k">Mouse</span></div>
+        <div class="control-item"><span>Sprint</span><span class="k">Shift</span></div>
+        <div class="control-item"><span>Handbrake / Jump</span><span class="k">Space</span></div>
+        <div class="control-item"><span>Enter / Jack Car</span><span class="k">F or E</span></div>
+        <div class="control-item"><span>Fire / Punch</span><span class="k">Left Mouse</span></div>
+        <div class="control-item"><span>Aim Zoom</span><span class="k">Right Mouse</span></div>
+        <div class="control-item"><span>Switch Weapon</span><span class="k">1 - 5 / Wheel</span></div>
+        <div class="control-item"><span>Throw Grenade</span><span class="k">G</span></div>
+        <div class="control-item"><span>Change Radio</span><span class="k">R</span></div>
+        <div class="control-item"><span>Horn / Siren</span><span class="k">H / E (Car)</span></div>
+        <div class="control-item"><span>Camera View</span><span class="k">V</span></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-resume">RESUME GAME</button>
+      </div>
+    </div>
+
+    <!-- START / CLICK TO PLAY OVERLAY -->
+    <div id="start-screen" class="interactive">
+      <div id="start-title">GRAND THEFT AUTO</div>
+      <div id="start-sub">Vice & Liberty 3D • WebGL Edition</div>
+      <div class="pulse-prompt">CLICK ANYWHERE TO START</div>
+      <div style="margin-top: 24px; color: #718096; font-size: 13px;">
+        High-Octane 3D Open World • Police Chases • Vehicle Drifting • Weapons
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAD THREE.JS FIRST -->
+  <script src="libs/three.min.js"></script>
+
+  <!-- GAME MODULES -->
+  <script src="js/audio.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/weapons.js"></script>
+  <script src="js/vehicle.js"></script>
+  <script src="js/character.js"></script>
+  <script src="js/city.js"></script>
+  <script src="js/traffic.js"></script>
+  <script src="js/pedestrians.js"></script>
+  <script src="js/police.js"></script>
+  <script src="js/missions.js"></script>
+  <script src="js/minimap.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
